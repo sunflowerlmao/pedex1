@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html>
+<head>
+
+    <title>ЭКСПЕРЕМЕНТ ИДЕТ</title>
+    <style>
+       .body {
+        background-image: url('/static/backgr.jpg'); /* задать изображение фона */
+        background-repeat: no-repeat; /* отключить повторение фона */
+        background-size: cover; /* заполнить весь экран */
+        }
+
+       .image-container-wrapper {
+            padding: 5px;
+            margin-top: 300px;
+            background-color: rgba(255, 255, 255, 0.7); /* semi-transparent background */
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
+
+        }
+       .image-container {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 2px;
+            margin-right: 30%;
+        }
+       .image-checkbox {
+            position: relative;
+            overflow: hidden;
+            border: none;
+            background-color: transparent;
+            cursor: pointer;
+        }
+       .image-checkbox input[type="checkbox"] {
+            display: none;
+        }
+       .image-checkbox img {
+            width: 25px;
+            height: 25px;
+            object-fit: cover;
+            transition: transform.3s ease-in-out;
+        }
+       .image-checkbox:hover img {
+            transform: scale(1.1);
+        }
+       .image-checkbox:focus img {
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+        }
+       .selected-image-container {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 10px;
+            margin-top: 20px;
+            margin-left: 30%; /* add margin to move to the right */
+        }
+       .selected-image {
+            width: 200px;
+            height: 200px;
+            object-fit: cover;
+            margin-bottom: 10px;
+        }
+    </style>
+    <script>
+        let selectedImages = [];
+
+        function toggleImage(checkbox) {
+            const imgSrc = checkbox.nextElementSibling.src;
+            const imgName = imgSrc.split('/').pop();
+
+            if (checkbox.checked) {
+                selectedImages.push(imgName);
+            } else {
+                const index = selectedImages.indexOf(imgName);
+                if (index!== -1) {
+                    selectedImages.splice(index, 1);
+                }
+            }
+
+            // Send the updated selectedImages array to your Flask backend
+            fetch('/update_selected_images', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ selectedImages: selectedImages }),
+            });
+        }
+    </script>
+<body class="body">
+    <div class="image-container-wrapper">
+        <h1 style="text-align: left; margin-bottom: 10px; margin-left: 200px;">Графемы</h1>
+        <div class="image-container">
+            {% for filename in filenames %}
+                <label class="image-checkbox" for="image-{{ loop.index }}">
+                    <input type="checkbox" id="image-{{ loop.index }}" onclick="toggleImage(this)">
+                    <img src="/static/graf/{{ filename }}" alt="{{ filename }}">
+                </label>
+            {% endfor %}
+        </div>
+    </div>
+    <h2 style="margin-left: 30%;">Selected Images</h2>
+    <div class="selected-image-container">
+        {% for imageSrc in selectedImages %}
+            <img class="selected-image" src="{{ url_for('static', filename=imageSrc) }}" alt="Selected Image">
+        {% endfor %}
+    </div>
+</body>
+</html>
