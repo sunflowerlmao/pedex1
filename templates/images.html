@@ -1,7 +1,9 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <title>ЭКСПЕРЕМЕНТ ИДЕТ</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Графемы</title>
     <style>
         .body {
             background-image: url('/static/backgr.jpg'); /* задать изображение фона */
@@ -90,7 +92,6 @@
         }
     </style>
 </head>
-</head>
 <body class="body">
     <div class="image-container-wrapper">
         <h1 style="text-align: center; margin-bottom: 20px;margin-top: 10px;">Графемы</h1>
@@ -109,6 +110,28 @@
     </div>
 
     <script>
+        const SELECTED_IMAGES_KEY = 'selectedImages';
+
+        // Очистить массив selectedImages при загрузке страницы
+        let selectedImages = [];
+
+        // Получить выбранные изображения из local storage
+        const savedSelectedImages = JSON.parse(localStorage.getItem(SELECTED_IMAGES_KEY)) || [];
+
+        // Обновить local storage при изменении выбранных изображений
+        function updateSelectedImages() {
+            localStorage.setItem(SELECTED_IMAGES_KEY, JSON.stringify(selectedImages));
+        }
+
+        // Загрузить выбранные изображения
+        function loadSelectedImages() {
+            savedSelectedImages.forEach(filename => {
+                if (!selectedImages.includes(filename)) {
+                    addSelectedImage(filename);
+                }
+            });
+        }
+
         document.querySelectorAll('.image-checkbox input[type="checkbox"]').forEach(checkbox => {
             checkbox.addEventListener('change', event => {
                 const filename = event.target.getAttribute('data-filename');
@@ -119,9 +142,35 @@
                 xhr.onload = function() {
                     if (xhr.status === 200) {
                         if (isChecked) {
-                            addSelectedImage(filename);
+                            if (!selectedImages.includes(filename)) {
+                                addSelectedImage(filename);
+                                // Отправить AJAX-запрос на сервер для добавления изображения в массив selectedImages
+                                const xhr2 = new XMLHttpRequest();
+                                xhr2.open('POST', '/add_to_array_server', true);
+                                xhr2.setRequestHeader('Content-Type', 'application/json');
+                                xhr2.onload = function() {
+                                    if (xhr2.status === 200) {
+                                        console.log('Image added to server array:', filename);
+                                    } else {
+                                        console.error('Error:', xhr2.statusText);
+                                    }
+                                };
+                                xhr2.send(JSON.stringify({ filename: filename }));
+                            }
                         } else {
                             removeSelectedImage(filename);
+                            // Отправить AJAX-запрос на сервер для удаления изображения из массива selectedImages
+                            const xhr2 = new XMLHttpRequest();
+                            xhr2.open('POST', '/remove_from_array_server', true);
+                            xhr2.setRequestHeader('Content-Type', 'application/json');
+                            xhr2.onload = function() {
+                                if (xhr2.status === 200) {
+                                    console.log('Image removed from server array:', filename);
+                                } else {
+                                    console.error('Error:', xhr2.statusText);
+                                }
+                            };
+                            xhr2.send(JSON.stringify({ filename: filename }));
                         }
                     } else {
                         console.error('Error:', xhr.statusText);
@@ -132,6 +181,7 @@
         });
 
         function addSelectedImage(filename) {
+            console.log('Selected images:', selectedImages);
             const selectedImageContainer = document.querySelector('.selected-image-container');
             const img = document.createElement('img');
             img.src = `/static/graf/${filename}`;
@@ -139,19 +189,11 @@
             img.className = 'selected-image';
             img.addEventListener('click', event => {
                 removeSelectedImage(filename);
-                const xhr = new XMLHttpRequest();
-                xhr.open('POST', '/remove_from_array', true);
-                xhr.setRequestHeader('Content-Type', 'application/json');
-                xhr.onload = function() {
-                    if (xhr.status === 200) {
-                        console.log('Image removed from array:', filename);
-                    } else {
-                        console.error('Error:', xhr.statusText);
-                    }
-                };
-                xhr.send(JSON.stringify({ filename: filename }));
+                updateSelectedImages();
             });
+            selectedImages.push(filename);
             selectedImageContainer.appendChild(img);
+            updateSelectedImages();
         }
 
         function removeSelectedImage(filename) {
@@ -160,10 +202,21 @@
             for (let i = 0; i < images.length; i++) {
                 if (images[i].alt === filename) {
                     images[i].remove();
+                    const index = selectedImages.indexOf(filename);
+                    if (index !== -1) {
+                        selectedImages.splice(index, 1);
+                        updateSelectedImages();
+                    }
                     break;
                 }
             }
         }
+
+        // Загрузить выбранные изображения после загрузки страницы
+        window.onload = function() {
+            selectedImages = []; // Очистить массив selectedImages
+            loadSelectedImages();
+        };
     </script>
 </body>
 </html>

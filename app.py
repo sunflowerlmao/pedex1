@@ -10,6 +10,7 @@ app = Flask(__name__)
 app.config['UPLOAD_FOLDER'] = 'uploads'
 
 selected_filenames = []
+bd = []
 
 @app.route('/', methods=['GET', 'POST'])
 def index():
@@ -26,18 +27,15 @@ def add_to_array():
     filename = data['filename']
     is_checked = data['is_checked']
     if is_checked:
-        selected_filenames.append(filename)
+        if filename not in selected_filenames:
+            selected_filenames.append(filename)
+            return jsonify({'status': 'success'})
     else:
-        selected_filenames.remove(filename)
-    return jsonify({'status': 'success'})
+        if filename in selected_filenames:
+            selected_filenames.remove(filename)
+            return jsonify({'status':'success'})
+    return jsonify({'status': 'error'})
 
-@app.route('/remove_from_array', methods=['POST'])
-def remove_from_array():
-    data = request.get_json()
-    filename = data['filename']
-    if filename in selected_filenames:
-        selected_filenames.remove(filename)
-    return jsonify({'status': 'success'})
 @app.route('/download', methods=['GET', 'POST'])
 def download():
     if request.method == 'POST' and request.files:
@@ -68,10 +66,27 @@ def success():
     for i in range(len(db)):
         db[i][1] = db[i][1][:-1]
         db[i][1] = db[i][1].split(',')
-    print(db)
+        bd.append(db[i])
+
     database.close()
     return render_template('success.html')
+@app.route('/add_to_array_server', methods=['POST'])
+def add_to_array_server():
+    data = request.get_json()
+    filename = data['filename']
+    if filename not in selected_filenames:
+        selected_filenames.append(filename)
+        return jsonify({'status': 'success'})
+    return jsonify({'status': 'error'})
 
+@app.route('/remove_from_array_server', methods=['POST'])
+def remove_from_array_server():
+    data = request.get_json()
+    filename = data['filename']
+    if filename in selected_filenames:
+        selected_filenames.remove(filename)
+        return jsonify({'status': 'success'})
+    return jsonify({'status': 'error'})
 @app.route('/clear', methods=['GET', 'POST'])
 def clear():
     q = 'static/graf'
