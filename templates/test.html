@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+</head>
+<body>
+<script>
+    $(document).ready(function() {
+        $.ajax({
+            type: 'POST',
+            url: '/sort_filenames',
+            data: JSON.stringify({ filenames: selected_filenames }),
+            contentType: 'application/json',
+            success: function(data) {
+                $('#image-list').html('');
+                $.each(data.sorted_filenames, function(index, filename) {
+                $('#image-list').append('<li>' + filename + '</li>');
+            });
+            }
+        });
+    });
+</script>
+
+</body>
+</html>

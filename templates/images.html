@@ -16,7 +16,7 @@
 
         .image-container-wrapper {
             padding: 5px;
-            margin-top: 150px;
+            margin-top: 100px;
             background-color: rgba(255, 255, 255, 0.7); /* semi-transparent background */
             border: 1px solid #ccc;
             border-radius: 5px;
@@ -65,14 +65,14 @@
 
         .selected-image-container-wrapper {
             padding: 5px;
-            margin-top: auto; /* разместить контейнер выбранных изображений внизу контейнера image-container-wrapper */
+            margin-top: 100px; /* разместить контейнер выбранных изображений внизу контейнера image-container-wrapper */
             background-color: rgba(255, 255, 255, 0.7); /* semi-transparent background */
             border: 1px solid #ccc;
             border-radius: 5px;
             margin-bottom: 3%;
             box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
             flex: 1 1 30%; /* занимать 30% экрана */
-            display: flex; /* разместить контейнер выбранных изображений и заголовок в одной строке */
+            display: grid; /* разместить контейнер выбранных изображений и заголовок в одной строке */
             align-items: center; /* выровнять заголовок и контейнер выбранных изображений по центру */
         }
 
@@ -81,6 +81,7 @@
             flex-wrap: wrap;
             justify-content: center;
             gap: 2px;
+            margin-top: 5%;
             width: 100%; /* задать ширину контейнера выбранных изображений равную ширине контейнера selected-image-container-wrapper */
             height: 100%; /* задать высоту контейнера выбранных изображений равную ширине контейнера selected-image-container-wrapper */
         }
@@ -105,6 +106,8 @@
         </div>
     </div>
     <div class="selected-image-container-wrapper">
+        <h1 style="text-align: center;">Иероглиф</h1>
+        <img src="{{ url_for('static', filename='ierog/' + random_image) }}" alt="Random Image" style="width: 100%; height: auto; margin-bottom: 10px;">
         <h1 style="text-align: center;">Выбранные графемы</h1>
         <div class="selected-image-container"></div>
     </div>
@@ -122,6 +125,7 @@
         function updateSelectedImages() {
             localStorage.setItem(SELECTED_IMAGES_KEY, JSON.stringify(selectedImages));
         }
+
 
         // Загрузить выбранные изображения
         function loadSelectedImages() {
@@ -180,6 +184,49 @@
             });
         });
 
+        function loadImages() {
+            fetch('/get_filenames')
+               .then(response => response.json())
+               .then(data => {
+                   data.filenames = undefined;
+                   const imageContainer = document.getElementById('image-container');
+                    imageContainer.innerHTML = ''; // clear the container
+                    data.filenames.forEach(filename => {
+                        const img = document.createElement('img');
+                        img.src = `/static/graf/${filename}`;
+                        img.alt = filename;
+                        img.className = 'image-checkbox';
+                        const checkbox = document.createElement('input');
+                        checkbox.type = 'checkbox';
+                        checkbox.id = `image-${filename}`;
+                        checkbox.dataset.filename = filename;
+                        const label = document.createElement('label');
+                        label.htmlFor = checkbox.id;
+                        label.appendChild(img);
+                        label.appendChild(checkbox);
+                        imageContainer.appendChild(label);
+                    });
+               });
+        }
+
+// Call the function when the page loads
+window.onload = loadImages;
+
+// Call the function again every 5 seconds
+setInterval(loadImages, 5000);
+        function getFilenames() {
+        fetch('/get_filenames')
+            .then(response => response.json())
+            .then(data => {
+                const filenames = data.filenames;
+                // Update the list of filenames in the HTML
+            });
+        }
+        // Call the function when the page loads
+        window.onload = getFilenames;
+        // Call the function again every 5 seconds
+        setInterval(getFilenames, 5000);
+
         function addSelectedImage(filename) {
             console.log('Selected images:', selectedImages);
             const selectedImageContainer = document.querySelector('.selected-image-container');
@@ -211,6 +258,7 @@
                 }
             }
         }
+
 
         // Загрузить выбранные изображения после загрузки страницы
         window.onload = function() {
