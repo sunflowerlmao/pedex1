@@ -124,8 +124,8 @@ def bdload():
         db[i][1] = db[i][1][:-1]
         db[i][1] = db[i][1].split(',')
         bd.append(db[i])
-
     database.close()
+
 
 
 @app.route('/add_to_array_server', methods=['POST'])

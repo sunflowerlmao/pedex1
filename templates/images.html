@@ -86,6 +86,7 @@
             height: 100%; /* задать высоту контейнера выбранных изображений равную ширине контейнера selected-image-container-wrapper */
         }
 
+
         .selected-image {
             width: 25px;
             height: 25px;
@@ -168,6 +169,7 @@
                             xhr2.open('POST', '/remove_from_array_server', true);
                             xhr2.setRequestHeader('Content-Type', 'application/json');
                             xhr2.onload = function() {
+
                                 if (xhr2.status === 200) {
                                     console.log('Image removed from server array:', filename);
                                 } else {
